@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>مؤقت</title>
+<style type="text/css">
+<!--
+#clock strong {
+	font-size: 150px;
+	text-align: center;
+	color:#013878;
+}
+-->
+</style>
+		
+		<!-- Bootstrap CSS CDN -->
+		<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+		<link href="bootstrap/css/dataTables.bootstrap.min.css" rel="stylesheet">
+		<link href="bootstrap/css/bootstrap-rtl.css" rel="stylesheet">
+		
+		<link rel="stylesheet" href="bootstrap/js/sweetalert/node_modules/sweetalert2/dist/sweetalert2.min.css">
+
+		<script src="bootstrap/js/jquery.min.js"></script>
+		<script src="bootstrap/js/bootstrap.min.js"></script>
+</head>
+
+<body bgcolor="#FFFFFF"  style="padding: 6px;">
+
+<div class="container-fluid" style="border: 3px solid; padding: 12px;">
+
+<table width="100%" height="100%" border="0"   onmousedown="show('btn_tr')" style="cursor:pointer"  >
+  <tr>
+    <td height="214">&nbsp;</td>
+    <td align="center"><span id="clock"><strong>00:00:00</strong></span> </td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td height="63">&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  
+
+</table>
+
+<div class="row" style="text-align: center;">
+	<div class="col-xs-4">
+		<label>الساعات :</label>
+		<input id="hinput"  type="text" value="00" style="width:60px"/>
+	</div>
+	<div class="col-xs-4">
+	<label>الدقائق :</label>
+	<input id="minput"  type="text" value="00" style="width:60px"/>
+	</div>
+	<div class="col-xs-4">
+	<label>الثواني :</label>
+	<input id="sinput"  type="text" value="00" style="width:60px"/>
+	</div>
+</div>
+
+<br>
+
+<div class="row" style="text-align: center;">
+	<div class="col-xs-3">
+	<input id="setB" type="button" class="btn btn-default" value="تحديد الوقت" onclick="setTime()">
+	</div>
+	<div class="col-xs-3">
+	<input id="startB" type="button" class="btn btn-primary" value="بدء الوقت" onclick="run()">
+	</div>
+	<div class="col-xs-3">
+	<input id="pauseB" type="button" class="btn btn-warning" value="إيقاف مؤقت" onclick="pause()" style="background-color: #d67e01;">
+	</div>
+	<div class="col-xs-3">
+	<input id="endB" type="button" class="btn btn-danger" value="إيقاف" onclick="stop()">
+	</div>
+</div>
+<br>
+<input id="clockHidden" type="hidden" value="00:00:00">
+
+    <!--
+<input id="diff" type="text">
+<input id="next" type="text">
+-->
+
+<script src="bootstrap/js/sweetalert/node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
+
+<script language="Javascript">
+
+var alarm = new Audio("default.mp3");
+
+var normalelapse = 1000;
+var nextelapse = normalelapse;
+var counter;
+var startTime;
+//var start = clock.innerText;
+var finish = "00:00:00";
+var timer = null;
+
+function fullscreen(){
+	var WshShell = new ActiveXObject('WScript.Shell')
+    WshShell.SendKeys('{F11}');
+}
+function pauseImage(){
+	pause();
+	image.innerHTML="<img  src='start.png' onmousemove=\"this.src='startB.png'\" onmouseout=\"this.src='start.png'\"  onclick='startImage();' style='cursor: pointer' title='Continue'/>";
+}
+function startImage(){
+	run();
+	image.innerHTML="<img  onmousemove=\"this.src='pauseB.png'\" onmouseout=\"this.src='pause.png'\" src='pause.png'  onclick='pauseImage();' style='cursor: pointer' title='pause'/>";
+}
+function show(id){
+	document.getElementById(id).style.display="block";
+}
+
+function hid(id){
+	document.getElementById(id).style.display="none";
+}
+
+function setTime(){
+	 startB.disabled = false;
+     pauseB.disabled = true;
+     setB.disabled = false;
+     var s = sinput.value;
+     var m = minput.value;
+     var h = hinput.value;
+	 if(isNaN(h) || isNaN(m) || isNaN(s)){
+		return;
+	 }
+
+    var sn = new Number(s);
+    var mn = new Number(m);
+    var hn = new Number(h);
+	var ss = sn < 10 ? ("0" + sn) : s;
+    var sm = mn < 10 ? ("0" + mn) : m;
+    var sh = hn < 10 ? ("0" + hn) : h;
+     var init = sh + ":" + sm + ":" + ss;
+
+     clock.innerHTML = "<strong>"+init+"</strong>";
+     clockHidden.value = init;
+     window.clearTimeout(timer);
+     window.clearInterval(timer);
+}
+function reset(){
+	 sinput.value = "00" ;
+     minput.value = "00" ;
+     hinput.value = "00" ;
+
+}
+
+function run() {
+	
+    startB.disabled = true;
+    pauseB.disabled = false;
+    setB.disabled = true;
+	endB.disabled = false;
+    counter = 0;
+    
+    startTime = new Date().valueOf();
+	
+	
+    timer = window.setInterval("onTimer()", nextelapse);
+}
+
+
+function pause() {
+    startB.disabled = false;
+    pauseB.disabled = true;
+    setB.disabled = false;
+    window.clearTimeout(timer);
+}
+
+function stop(){
+	 startB.disabled = false;
+     pauseB.disabled = true;
+     setB.disabled = false;
+	 endB.disabled = true;
+	 sinput.value = "00" ;
+     minput.value = "00" ;
+     hinput.value = "00" ;
+	 clock.innerHTML = "<strong>00:00:00</strong>"
+	 clockHidden.value = "00:00:00";
+	 window.clearTimeout(timer);
+	 window.clearInterval(timer);
+	 
+	 alarm.pause();
+	 alarm.currentTime = 0;
+}
+window.onload = function() {
+    pauseB.disabled = true;
+}
+
+
+function onTimer()
+{
+
+    if (clockHidden.value == finish)
+    {
+		alarm.play();
+		alarm.loop = true;
+        window.clearInterval(timer);
+		clock.innerHTML = "<strong><font color=#bb0000>أنتهى الوقت !</font></strong>";
+        startB.disabled = true;
+        pauseB.disabled = true;
+        setB.disabled = true;
+		endB.disabled = false;
+        return;
+    }
+
+    //var hms = new String(clock.innerText).split(":");
+    var hms = new String(clockHidden.value).split(":");
+    //var ms = new Number(hms[3]);
+    var s = new Number(hms[2]);
+    var m = new Number(hms[1]);
+    var h = new Number(hms[0]);
+        s -= 1;
+        if (s < 0)
+        {
+            s = 59;
+            m -= 1;
+        }
+
+        if (m < 0)
+        {
+            m = 59;
+            h -= 1;
+        }
+    var ss = s < 10 ? ("0" + s) : s;
+    var sm = m < 10 ? ("0" + m) : m;
+    var sh = h < 10 ? ("0" + h) : h;
+
+    //start = sh + ":" + sm + ":" + ss + ":" + ms;
+    var nowtime = sh + ":" + sm + ":" + ss;
+    clock.innerHTML = "<strong>"+nowtime+"</strong>";
+    
+	if(s<=59 && m==0 && h==0){
+        //setTimeout("onTimer2()",200);
+		clock.innerHTML = "<strong><font color=#bb0000>"+nowtime+"</font></strong>"
+	}
+    clockHidden.value = nowtime;
+    
+    window.clearInterval(timer);
+
+    
+    counter++;
+    var counterSecs = counter * 1000;
+    var elapseSecs = new Date().valueOf() - startTime;
+    var diffSecs = counterSecs - elapseSecs;
+    nextelapse = normalelapse + diffSecs;
+    //diff.value = counterSecs + "-" + elapseSecs + "=" + diffSecs;
+    //next.value = "nextelapse = " + nextelapse;
+    if (nextelapse < 0) nextelapse = 0;
+
+    
+    timer = window.setInterval("onTimer()", nextelapse);
+}
+function onTimer2(){
+    var hms = new String(clockHidden.value);
+    clock.innerHTML = "<strong><font color=#8b0000>"+hms+"</font></strong>";
+}
+function fullscreen(){
+	var WsShell = new ActiveXObject('WScript.Shell')
+	WsShell.SendKeys('{F11}');
+}
+/*
+function onTimer3(){
+    var hms = new String(clockHidden.value);
+    clock.innerHTML = "<strong><font color=#8b0000>"+hms+"</font></strong>";
+}
+*/
+</script>
+
+</div>
+
+</body>
+</html>
